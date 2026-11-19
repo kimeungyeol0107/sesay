@@ -183,6 +183,11 @@ button{cursor:pointer;font-family:inherit}
 .correct{color:#16834b;font-weight:bold}
 .wrong{color:#d33;font-weight:bold}
 .explain{color:#555;font-size:14px}
+.gradeLetter{
+ font-size:38px;
+ font-weight:bold;
+ margin:15px 0 5px;
+}
 @media(max-width:500px){
  .startBox h1{font-size:25px}
  .question{padding:17px}
@@ -244,6 +249,9 @@ button{cursor:pointer;font-family:inherit}
   <p>중3 사회 문제 풀이가 완료되었습니다.</p>
   <div class="score" id="scoreDisplay">0점</div>
 
+  <div class="gradeLetter" id="gradeLetter">E</div>
+  <h3 id="grade">등급</h3>
+
   <div class="resultStats">
    <div class="stat">
     <strong id="correctCount">0 / 18</strong>
@@ -259,7 +267,6 @@ button{cursor:pointer;font-family:inherit}
    </div>
   </div>
 
-  <h3 id="grade"></h3>
   <p id="timeoutText"></p>
 
   <div class="review">
@@ -328,8 +335,8 @@ const originalQuestions = [
 {
  q:"서비스업의 세계화의 사례로 옳지 않은 것을 보기에서 찾아 모두 고르시오.\n\n<보기>\nㄱ. 한국의 A 성형외과는 해외 환자를 유치하기 위해 영어와 중국어 통역 서비스를 제공하고 현지 에이전시와 제휴를 맺었다. 또한 수술 후 본국으로 돌아간 환자를 위해 화상 통신을 활용한 비대면 사후 관리 시스템을 운영하고 있다.\n\nㄴ. 미국의 금융 기업 B 은행은 인건비 절감과 24시간 고객 응대를 위해 인도의 방갈로르 지역에 대규모 고객 상담 콜센터를 설립했다. 동시에 아시아 시장 확대를 위해 싱가포르에 현지 지사를 세워 직접 금융 상품을 판매하고 있다.\n\nㄷ. 한국의 의류 기업 C 패션은 생산 비용을 절감하기 위해 해외 생산 기지를 확대하고, 현지에서 생산한 제품을 국내외 시장에 판매하고 있다.",
  p:4,level:"중",
- a:["ㄱ","ㄱ, ㄴ","ㄱ, ㄷ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"],
- c:1
+ a:["ㄱ","ㄴ","ㄱ, ㄴ","ㄱ, ㄷ","ㄷ"],
+ c:4
 },
 {
  q:"서비스업이 성장할수록 물류산업도 함께 성장하는 이유로 옳지 않은 것을 고르시오.",
@@ -649,13 +656,28 @@ function finishQuiz(timeout=false){
  document.getElementById("answerReview").innerHTML=review;
 
  let grade="";
- if(score>=90)grade="A";
- else if(score>=80)grade="B";
- else if(score>=70)grade="C";
- else if(score>=60)grade="D";
- else grade="E";
+ let gradeLetter="";
 
- document.getElementById("grade").textContent=grade;
+ if(score>=90){
+  gradeLetter="A";
+  grade="90점 이상";
+ }else if(score>=80){
+  gradeLetter="B";
+  grade="80점 이상";
+ }else if(score>=70){
+  gradeLetter="C";
+  grade="70점 이상";
+ }else if(score>=60){
+  gradeLetter="D";
+  grade="60점 이상";
+ }else{
+  gradeLetter="E";
+  grade="60점 미만";
+ }
+
+ document.getElementById("gradeLetter").textContent=gradeLetter;
+ document.getElementById("grade").textContent=grade+" 등급";
+
  document.getElementById("timeoutText").textContent=
   timeout?"제한 시간 25분이 종료되어 자동 제출되었습니다.":"시험을 정상적으로 제출했습니다.";
 
