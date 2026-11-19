@@ -1,0 +1,666 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중3 사회 문제 풀기</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,"Malgun Gothic",sans-serif;
+ background:#f2f3f5;
+ color:#222;
+}
+button{cursor:pointer;font-family:inherit}
+#startScreen{
+ min-height:100vh;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:20px;
+}
+.startBox{
+ background:white;
+ width:100%;
+ max-width:600px;
+ padding:40px 25px;
+ border-radius:18px;
+ text-align:center;
+ box-shadow:0 5px 25px #00000010;
+}
+.startBox h1{font-size:30px;margin-bottom:12px}
+.startBox p{color:#777}
+.mainBtn{
+ border:0;
+ background:#222;
+ color:white;
+ padding:15px 30px;
+ border-radius:9px;
+ font-size:16px;
+ margin:10px 5px;
+}
+.mainBtn:hover{background:#444}
+#difficulty{
+ display:none;
+ text-align:left;
+ background:#f5f5f5;
+ padding:18px;
+ border-radius:10px;
+ margin:20px 0;
+ line-height:2;
+}
+#quizScreen{display:none;max-width:850px;margin:auto;padding:15px}
+.top{
+ position:sticky;
+ top:0;
+ z-index:10;
+ background:#fff;
+ padding:14px;
+ border-radius:12px;
+ box-shadow:0 3px 12px #00000012;
+ margin-bottom:20px;
+}
+.topRow{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+}
+#timer{
+ font-size:25px;
+ font-weight:bold;
+ font-variant-numeric:tabular-nums;
+}
+#timer.danger{color:#e22}
+.progress{
+ height:7px;
+ background:#eee;
+ border-radius:10px;
+ overflow:hidden;
+ margin-top:12px;
+}
+#progressBar{
+ height:100%;
+ width:0%;
+ background:#333;
+ transition:.2s;
+}
+.question{
+ background:white;
+ border-radius:13px;
+ padding:22px;
+ margin-bottom:17px;
+ box-shadow:0 2px 9px #00000008;
+}
+.qTitle{
+ font-weight:bold;
+ font-size:17px;
+ line-height:1.6;
+ margin-bottom:17px;
+ white-space:pre-wrap;
+}
+.level{
+ display:inline-block;
+ background:#eee;
+ padding:4px 9px;
+ border-radius:5px;
+ font-size:12px;
+ margin-bottom:10px;
+}
+.choice{
+ display:flex;
+ align-items:flex-start;
+ gap:10px;
+ padding:13px 12px;
+ border:1px solid #e5e5e5;
+ border-radius:8px;
+ margin:8px 0;
+ cursor:pointer;
+ line-height:1.55;
+ transition:.15s;
+}
+.choice:hover{background:#f7f7f7}
+.choice.selected{
+ background:#ededed;
+ border-color:#333;
+}
+.choice input{
+ margin-top:4px;
+ accent-color:#222;
+}
+.submitArea{text-align:center;padding:20px 0 40px}
+#submitBtn{
+ width:100%;
+ max-width:350px;
+ padding:17px;
+ border:0;
+ background:#222;
+ color:white;
+ border-radius:10px;
+ font-size:18px;
+ font-weight:bold;
+}
+#submitBtn:disabled{background:#aaa;cursor:not-allowed}
+#remaining{font-size:13px;color:#777;margin-top:12px}
+#resultScreen{
+ display:none;
+ max-width:750px;
+ margin:30px auto;
+ padding:15px;
+}
+.resultBox{
+ background:white;
+ border-radius:15px;
+ padding:28px 20px;
+ text-align:center;
+ box-shadow:0 3px 15px #00000010;
+}
+.score{font-size:48px;font-weight:bold;margin:20px 0}
+.resultStats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+ margin:25px 0;
+}
+.stat{
+ background:#f4f4f4;
+ padding:15px 5px;
+ border-radius:9px;
+}
+.stat strong{display:block;font-size:22px;margin-bottom:7px}
+.stat span{font-size:12px;color:#777}
+.review{
+ text-align:left;
+ margin-top:25px;
+}
+.reviewItem{
+ border-top:1px solid #eee;
+ padding:17px 5px;
+ line-height:1.7;
+}
+.correct{color:#16834b;font-weight:bold}
+.wrong{color:#d33;font-weight:bold}
+.explain{color:#555;font-size:14px}
+@media(max-width:500px){
+ .startBox h1{font-size:25px}
+ .question{padding:17px}
+ .qTitle{font-size:16px}
+ .resultStats{grid-template-columns:1fr}
+ .stat{display:flex;justify-content:space-between;align-items:center}
+ .stat strong{margin:0}
+}
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+ <div class="startBox">
+  <h1>중3 사회 문제 풀기</h1>
+  <p>사회 실력 테스트</p>
+  <p>총 18문제 · 100점 · 제한시간 25분</p>
+
+  <button class="mainBtn" onclick="showDifficulty()">난이도 보기</button>
+
+  <div id="difficulty">
+   <strong>문제 난이도</strong><br>
+   1번 ~ 5번 : 하<br>
+   6번 ~ 10번 : 중<br>
+   11번 ~ 15번 : 상<br>
+   16번 ~ 18번 : 최상
+  </div>
+
+  <button class="mainBtn" onclick="startQuiz()">시험 시작하기</button>
+ </div>
+</div>
+
+<div id="quizScreen">
+ <div class="top">
+  <div class="topRow">
+   <strong>중3 사회 모의고사</strong>
+   <div id="timer">25:00</div>
+  </div>
+  <div class="topRow" style="margin-top:7px;font-size:13px;color:#777">
+   <span id="answered">응답 0 / 18</span>
+   <span>총 100점</span>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+ </div>
+
+ <div id="questions"></div>
+
+ <div class="submitArea">
+  <button id="submitBtn" onclick="finishQuiz()" disabled>
+   모든 문제를 풀어주세요
+  </button>
+  <div id="remaining">18문제에 모두 답해야 제출할 수 있습니다.</div>
+ </div>
+</div>
+
+<div id="resultScreen">
+ <div class="resultBox">
+  <h2>시험 결과</h2>
+  <p>중3 사회 문제 풀이가 완료되었습니다.</p>
+  <div class="score" id="scoreDisplay">0점</div>
+
+  <div class="resultStats">
+   <div class="stat">
+    <strong id="correctCount">0 / 18</strong>
+    <span>맞힌 문제</span>
+   </div>
+   <div class="stat">
+    <strong id="elapsed">0분 0초</strong>
+    <span>소요 시간</span>
+   </div>
+   <div class="stat">
+    <strong id="wrongCount">0개</strong>
+    <span>틀린 문제</span>
+   </div>
+  </div>
+
+  <h3 id="grade"></h3>
+  <p id="timeoutText"></p>
+
+  <div class="review">
+   <h3>정답 및 채점 결과</h3>
+   <div id="answerReview"></div>
+  </div>
+ </div>
+</div>
+
+<script>
+const originalQuestions = [
+{
+ q:"시장 판매를 목적으로 상품성 높은 작물을 재배하는 농업 방식을 뭐라고 하나요?",
+ p:3,level:"하",
+ a:["대규모농업","상업적농업","플랜테이션","상업허가농업","자급적농업"],
+ c:1
+},
+{
+ q:"기업적 농업의 의미로 알맞은 것을 보기에서 찾아 모두 고르시오.\n\n<보기>\nㄱ. 많은 자본이 들어간다.\nㄴ. 많은 인력이 들어간다.\nㄷ. 이윤 창출을 목표로 한다.",
+ p:3,level:"하",
+ a:["ㄱ","ㄴ","ㄱ, ㄷ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"],
+ c:2
+},
+{
+ q:"단일 작물재배의 단점으로 옳지 않은 것을 고르시오.",
+ p:3,level:"하",
+ a:["삼림이 파괴된다.","농약이 과도하게 사용된다.","국제 가격 변동에 큰 영향을 받는다.","생산효율이 높다.","토양 양분이 불균형해진다."],
+ c:3
+},
+{
+ q:"다국적 기업의 설명으로 옳지 않은 것을 고르시오.",
+ p:3,level:"하",
+ a:[
+ "본사를 한 국가에 두고, 세계 여러 나라에 지사나 현지 법인을 세워 생산과 판매 활동을 하는 기업을 말한다.",
+ "원료 조달과 연구 개발, 생산, 판매를 전 세계에서 가장 유리한 국가를 선택해 나누어 진행한다.",
+ "거대한 자본력과 첨단 기술을 바탕으로 세계 경제와 무역에 매우 큰 영향을 미친다.",
+ "진출한 국가의 문화와 소비자의 취향에 맞추어 제품이나 마케팅 방식을 다르게 적용하는 경우가 많다.",
+ "모든 제품은 반드시 본사가 있는 나라의 공장에서만 생산한 뒤, 외국으로 수출하여 판매하기만 한다."
+ ],
+ c:4
+},
+{
+ q:"다국적 기업의 예시로 옳지 않은 것을 구하시오.",
+ p:3,level:"하",
+ a:[
+ "지산전자: 한국에 본사를 두고 있지만, 인건비가 저렴한 베트남에 스마트폰 생산 공장을 세우고 미국과 유럽에 연구소를 운영하고 있습니다.",
+ "킹버거: 미국에 본사를 둔 패스트푸드 기업으로, 전 세계 80여 개국에 지사를 세우고 각 나라의 종교와 식문화를 반영한 현지화 메뉴를 판매합니다.",
+ "캬아자동차: 한국에 본사를 두고 있으며, 관세 장벽을 피하고 현지 시장에 빠르게 대응하기 위해 미국 앨라배마주와 체코에 현지 조립 공장을 운영합니다.",
+ "선신단: 한국 내 특정 시·군 지역에만 3개의 매장을 운영하며, 해외에는 지사나 생산 공장 없이 국내 소비자를 대상으로만 빵을 만들어 판매하고 있습니다.",
+ "스우에덴가구: 스웨덴에 본사를 둔 가구 기업으로, 디자인은 본사에서 총괄하지만 원자재 조달과 제작은 동남아시아 공장에서 진행하며 전 세계 매장에서 판매합니다."
+ ],
+ c:3
+},
+{
+ q:"산업공동화의 현상으로 옳지 않은 것을 고르시오.",
+ p:4,level:"중",
+ a:[
+ "선진국 기업들이 인건비나 지대 등 생산 비용을 줄이기 위해 생산 기지를 해외로 이전하면서 발생한다.",
+ "제조업 생산 시설이 해외로 이전하면서 도심의 상주인구가 감소하고 주거 기능이 약화되는 현상을 말한다.",
+ "국내 제조업 공장들이 문을 닫거나 해외로 빠져나가면서 제조업 부문의 일자리가 크게 줄어든다.",
+ "제조업 비중이 축소되는 대신 서비스업과 금융업 등 제3차 산업 중심으로 국내 경제 구조가 재편된다.",
+ "핵심 부품 생산이나 연구개발 기능까지 해외로 이전될 경우 국내 산업의 장기적인 경쟁력이 약화될 수."
+ ],
+ c:1
+},
+{
+ q:"서비스업의 세계화의 사례로 옳지 않은 것을 보기에서 찾아 모두 고르시오.\n\n<보기>\nㄱ. 한국의 A 성형외과는 해외 환자를 유치하기 위해 영어와 중국어 통역 서비스를 제공하고 현지 에이전시와 제휴를 맺었다. 또한 수술 후 본국으로 돌아간 환자를 위해 화상 통신을 활용한 비대면 사후 관리 시스템을 운영하고 있다.\n\nㄴ. 미국의 금융 기업 B 은행은 인건비 절감과 24시간 고객 응대를 위해 인도의 방갈로르 지역에 대규모 고객 상담 콜센터를 설립했다. 동시에 아시아 시장 확대를 위해 싱가포르에 현지 지사를 세워 직접 금융 상품을 판매하고 있다.\n\nㄷ. 한국의 의류 기업 C 패션은 생산 비용을 절감하기 위해 해외 생산 기지를 확대하고, 현지에서 생산한 제품을 국내외 시장에 판매하고 있다.",
+ p:4,level:"중",
+ a:["ㄱ","ㄱ, ㄴ","ㄱ, ㄷ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"],
+ c:1
+},
+{
+ q:"서비스업이 성장할수록 물류산업도 함께 성장하는 이유로 옳지 않은 것을 고르시오.",
+ p:4,level:"중",
+ a:[
+ "온라인 플랫폼과 전자상거래의 발달로 소비자가 직접 매장을 방문하지 않고 상품을 구매하는 경우가 늘어나면서, 소비자에게 상품을 전달하는 배송 서비스의 중요성이 커지기 때문이다.",
+ "관광 및 숙박업이 성장하면서 호텔과 음식점에서 사용하는 식자재, 생활용품 등의 안정적인 공급을 위한 물류 수요가 증가하기 때문이다.",
+ "유통업의 규모가 확대되면 상품의 종류와 판매 지역이 다양해지므로, 상품을 보관하고 분류하여 적절한 장소로 이동시키는 물류 기능이 더욱 중요해지기 때문이다.",
+ "금융업과 정보통신업 등 비물질적인 서비스를 제공하는 산업이 성장하면 해당 산업의 거래 규모에 비례하여 상품의 국제 운송량도 반드시 증가하기 때문이다.",
+ "의료 및 복지 서비스가 확대되면 의약품과 의료기기, 각종 의료 소모품 등을 필요한 장소에 적시에 공급해야 하므로 물류산업의 역할도 중요해지기 때문이다."
+ ],
+ c:3
+},
+{
+ q:"지구온난화로 인해 나타나는 현상으로 옳지 않은 것을 고르시오.",
+ p:4,level:"중",
+ a:[
+ "해수 온도가 상승하면서 해수의 열팽창이 발생하고, 빙하가 녹으면서 전 세계적인 해수면 상승에 영향을 미친다.",
+ "고위도 지역의 영구 동토층이 녹으면서 땅이 불안정해지고, 토양 속에 저장되어 있던 온실가스가 대기 중으로 방출될 수 있다.",
+ "기온 상승으로 증발량이 증가하면서 일부 지역에서는 가뭄이 심해지는 반면, 대기 중 수증기 증가로 강수량이 증가하는 지역도 나타날 수 있다.",
+ "지구 평균 기온이 상승하면 해양의 수온도 함께 높아지므로, 해수의 산소 용해도가 증가하여 해양 생태계의 산소 부족 문제가 완화된다.",
+ "고산 지대와 극지방의 빙하가 감소하면서 빙하에 의존하는 생물들의 서식 환경이 변화하고, 생태계의 균형이 무너질 수."
+ ],
+ c:3
+},
+{
+ q:"온실효과에 대한 설명으로 옳은 것을 고르시오.",
+ p:4,level:"중",
+ a:[
+ "지표면이 태양 에너지를 흡수한 뒤 방출하는 적외선의 일부를 대기 중 온실가스가 흡수하고 다시 방출하여 지구의 평균 기온을 유지하는 현상이다.",
+ "태양에서 들어오는 단파 복사 에너지가 대기 중 온실가스에 대부분 흡수되어 지표면에 도달하지 못하는 현상이다.",
+ "대기 중 이산화탄소와 메탄의 농도가 감소할수록 지표면에서 방출되는 열에너지가 대기에 더 많이 갇혀 지구의 평균 기온이 상승하는 현상이다.",
+ "온실효과는 인간의 산업 활동으로 인해 처음 발생한 현상으로, 산업혁명 이전에는 지구 대기에 온실효과가 존재하지 않았다.",
+ "온실효과가 강해질수록 지구에서 우주로 방출되는 에너지가 증가하므로 지구의 평균 기온은 점차 낮아진다."
+ ],
+ c:0
+},
+{
+ q:"기업적 농업의 특징과 식량 자급률에 대한 설명으로 가장 적절하지 않은 것을 고르시오.",
+ p:7,level:"상",
+ a:[
+ "기업적 농업은 대규모 자본과 첨단 기술을 활용하여 농산물을 생산하며, 시장에서의 판매와 이윤 창출을 주요 목적으로 한다.",
+ "기업적 농업이 발달하면 특정 작물의 대량 생산과 수출이 확대될 수 있지만, 수익성이 높은 작물에 생산이 집중되면 국내에서 소비하는 일부 식량 작물의 생산이 감소할 가능성도 있다.",
+ "한 국가의 식량 자급률이 낮더라도 해외에서 식량을 안정적으로 수입할 수 있다면 국제적인 식량 가격 변동이나 수출 제한 조치에 따른 영향을 받지 않는다.",
+ "기업적 농업은 생산 및 유통 과정의 효율성을 높일 수 있지만, 농업 생산이 일부 대기업이나 특정 지역에 집중될 경우 소규모 농가의 경쟁력이 약화될 수 있다.",
+ "식량 자급률을 높이기 위해서는 국내 농업 생산 기반을 유지하고 식량 작물의 생산을 확대하는 노력이 필요하며, 이는 해외 식량 공급에 대한 의존도를 낮추는 데 도움이 될 수."
+ ],
+ c:2
+},
+{
+ q:"환경 문제를 유발하는 산업에 대한 설명으로 옳지 않은 것을 고르시오.",
+ p:7,level:"상",
+ a:[
+ "철강 및 시멘트 산업은 생산 과정에서 많은 에너지를 소비하고 온실가스를 배출하며, 대기오염과 기후변화에 영향을 미칠 수 있다.",
+ "석유화학 산업은 원유를 가공하여 다양한 화학제품을 생산하는 과정에서 유해 물질과 폐수가 발생할 수 있으며, 적절하게 처리하지 않을 경우 토양과 수질 오염을 유발할 수 있다.",
+ "광업은 광물 자원을 채굴하는 과정에서 산림 훼손과 지형 변화를 일으킬 수 있지만, 채굴 이후 복구 작업을 실시하면 환경에 미치는 영향은 대부분 완전히 사라진다.",
+ "화력 발전 산업은 석탄이나 석유 등의 화석 연료를 연소하여 전력을 생산하므로 이산화탄소와 대기오염 물질을 배출할 수 있다.",
+ "대규모 축산업은 가축의 소화 과정과 분뇨 처리 과정에서 메탄과 아산화질소 등의 온실가스를 배출하며, 사료 생산과 가축 사육 과정에서 수자원과 토지 이용에도 영향을 미친다."
+ ],
+ c:2
+},
+{
+ q:"푸드 마일리지에 대한 설명으로 옳지 않은 것을 고르시오.",
+ p:7,level:"상",
+ a:[
+ "푸드 마일리지는 식품이 생산된 지역에서 소비자의 식탁에 도달하기까지 이동한 거리와 식품의 무게를 함께 고려한 개념으로, 일반적으로 이동 거리가 길고 운송량이 많을수록 커진다.",
+ "푸드 마일리지가 높은 식품은 장거리 운송 과정에서 화석 연료를 사용하는 경우가 많아 운송 과정에서 발생하는 온실가스 배출량이 증가할 가능성이 있다.",
+ "동일한 종류의 식품이라도 생산지와 소비지 사이의 거리, 운송량 등에 따라 푸드 마일리지가 달라질 수 있으므로 식품의 종류만으로 푸드 마일리지를 판단하기는 어렵다.",
+ "푸드 마일리지를 줄이기 위해 지역에서 생산된 농산물을 소비하는 로컬푸드 운동이 확산되고 있으며, 이는 식품 운송에 따른 환경 부담을 줄이는 데 도움이 될 수 있다.",
+ "푸드 마일리지가 낮은 식품은 생산과 가공, 냉장 보관 및 유통 과정에서 발생하는 환경오염까지 항상 적기 때문에 전체적인 환경 부담도 반드시 낮다고 볼 수 있다."
+ ],
+ c:4
+},
+{
+ q:"유전자 재조합 농산물(GMO)에 대한 설명으로 옳지 않은 것을 고르시오.",
+ p:7,level:"상",
+ a:[
+ "유전자 재조합 기술은 특정 생물의 유전자를 다른 생물에 도입하거나 조절하여 기존에는 없던 형질을 나타내도록 하는 기술이며, 농업에서는 병충해 저항성이나 제초제 내성 등을 갖춘 작물을 개발하는 데 활용된다.",
+ "유전자 재조합 농산물은 병충해에 강한 품종을 개발하여 농약 사용량을 줄이는 데 기여할 수 있지만, 실제 농약 사용량의 변화는 작물의 종류와 재배 방식에 따라 달라질 수 있다.",
+ "유전자 재조합 농산물은 생산량 증가와 재배 효율 향상에 기여할 수 있으며, 기후 변화나 식량 부족 문제에 대응하기 위한 기술 중 하나로 활용될 가능성이 있다.",
+ "유전자 재조합 농산물은 외부 유전자를 도입하여 개발하기 때문에 모든 GMO 농산물은 일반 농산물보다 인체에 유해하며, 장기간 섭취할 경우 반드시 건강 문제가 발생한다.",
+ "유전자 재조합 농산물의 재배가 확대될 경우 생태계에 미치는 영향, 생물 다양성의 변화, 특정 기업의 종자 시장 지배 가능성 등 다양한 문제를 고려할 필요가 있다."
+ ],
+ c:3
+},
+{
+ q:"상업적 농업과 기업적 농업의 차이에 대한 설명으로 옳지 않은 것을 고르시오.",
+ p:7,level:"상",
+ a:[
+ "상업적 농업은 농산물을 자급자족하기보다는 시장에 판매하여 수익을 얻는 것을 목적으로 하며, 기업적 농업은 이러한 상업적 농업 중에서도 대규모 자본과 전문적인 경영 방식을 적극적으로 활용하는 형태로 볼 수 있다.",
+ "상업적 농업은 소규모 농가에서도 시장 판매를 목적으로 이루어질 수 있지만, 기업적 농업은 일반적으로 대규모 자본과 노동력, 첨단 기술 등을 활용하여 생산의 효율성을 높이는 특징이 있다.",
+ "기업적 농업은 수익성을 중요하게 여기므로 시장 수요와 국제 가격 변화에 따라 재배 작물을 조정할 수 있으며, 이 과정에서 특정 작물의 생산이 집중되는 현상이 나타날 수 있다.",
+ "상업적 농업은 농산물의 시장 판매를 목적으로 하는 반면, 기업적 농업은 농산물의 생산량 확대만을 목적으로 하므로 시장 가격이나 소비자의 수요 변화에는 상대적으로 영향을 받지 않는다.",
+ "상업적 농업과 기업적 농업은 모두 시장과 밀접한 관계를 맺고 있지만, 기업적 농업은 대규모 투자와 전문적인 경영을 바탕으로 생산·가공·유통 과정까지 통합하는 형태로 발전하기도 한다."
+ ],
+ c:3
+},
+{
+ q:"다음 산업 활동의 사례 중 환경 문제를 유발하는 산업에 대한 설명으로 옳지 않은 것을 고르시오.",
+ p:10,level:"최상",
+ a:[
+ "브라질의 대규모 소 사육 산업은 목초지를 확보하기 위해 산림을 농경지로 전환하기도 하며, 이 과정에서 생물 다양성이 감소하고 산림의 탄소 흡수 기능이 약화될 수 있다.",
+ "중국의 석탄 화력 발전 산업은 전력 생산 과정에서 이산화탄소와 대기오염 물질을 배출하며, 탈황·집진 설비를 도입하더라도 연료 연소에 따른 온실가스 배출 문제까지 완전히 해결되는 것은 아니다.",
+ "인도네시아의 니켈 채굴 산업은 전기차 배터리 생산에 필요한 광물을 공급하지만, 채굴 과정에서 산림 훼손과 토양 침식이 발생할 수 있으며 광산 폐기물의 부적절한 처리는 주변 수질에 영향을 미칠 수 있다.",
+ "중국의 섬유 염색 산업은 의류 생산에 필요한 다양한 색상과 기능을 구현하기 위해 화학물질과 물을 사용하며, 폐수 처리 과정에서 오염 물질을 제거하지 못하면 하천과 지하수에 영향을 미칠 수 있다.",
+ "네덜란드의 시설원예 산업은 온실 내부의 온도와 습도를 인위적으로 조절하여 작물 생산량을 높이며, 재배 환경을 정밀하게 관리할수록 난방과 냉방에 필요한 에너지 소비가 감소하는 경향이 있어 에너지 사용에 따른 환경 부담도 줄어든다."
+ ],
+ c:4
+},
+{
+ q:"다국적 기업의 공간적 분업 체계에 관한 내용이다. 다음 글을 읽고 물음에 답하시오. [글]\n\n2035년, 미국에 본사를 둔 글로벌 전자기업 '넥스트웨이브'는 세계 시장에서 경쟁력을 확보하기 위해 기업의 생산 및 경영 체계를 재편하였다.\n\n이 기업은 핵심 기술과 특허를 보호하고 세계 시장의 투자 방향을 결정하기 위해 미국 본사에 연구개발 총괄 부서와 전략 기획 부서를 집중시켰다. 또한 고급 인력과 전문 연구기관이 풍부한 독일에는 신제품 설계와 첨단 부품 개발을 담당하는 연구개발 센터를 설립하였다.\n\n반면, 인건비와 토지 비용이 상대적으로 저렴한 베트남에는 대규모 조립 공장을 설립하여 제품을 생산하도록 하였으며, 원자재와 주요 부품은 여러 국가의 협력업체로부터 공급받도록 하였다. 생산된 제품은 중국과 인도에 위치한 물류 거점을 거쳐 아시아 각국의 소비 시장으로 운송된다.\n\n한편, 브라질에는 현지 소비자의 소득 수준과 취향을 분석하고 지역별 판매 전략을 수립하는 마케팅 지사를 운영하고 있다. 이 지사는 현지 시장의 특성을 본사에 전달하며, 본사는 이를 바탕으로 제품의 디자인과 가격 정책을 일부 조정한다.\n\n이러한 기업의 공간적 분업 체계는 각 지역이 보유한 자원과 입지 조건을 활용하여 생산 비용을 절감하고 시장 경쟁력을 높이기 위한 것이다. 그러나 생산 시설이 해외로 이전되면서 본국의 일부 제조업 일자리가 감소할 수 있으며, 생산을 담당하는 국가에서는 해외 기업에 대한 경제적 의존도가 높아질 가능성도 제기되고 있다.\n\n다음 중 가장 적절한 분석을 고르시오.",
+ p:10,level:"최상",
+ a:[
+ "넥스트웨이브가 미국에 본사를 두고 독일에 연구개발 센터를 설립한 것은 고급 인력과 전문 연구기관 등 지역별 입지 조건을 활용한 사례이다. 다만 베트남의 생산 공장과 중국·인도의 물류 거점은 단순히 해외 시장과의 지리적 거리를 줄이기 위한 시설이므로, 생산비 절감이나 국제적인 분업 구조와는 직접적인 관련이 없다.",
+ "넥스트웨이브는 국가별 생산 요소의 차이를 활용하여 기업 활동을 여러 지역에 분산하고 있다. 이 과정에서 미국 본사는 기업의 주요 의사결정과 경영 전략을 담당하고, 독일은 연구개발, 베트남은 제품 조립, 중국과 인도는 물류, 브라질은 현지 시장 분석을 담당한다. 따라서 각 지역은 동일한 기능을 수행하기보다는 서로 다른 기능을 분담하며 하나의 국제적인 생산 및 경영 체계를 형성하고 있다.",
+ "넥스트웨이브가 베트남에 생산 공장을 설립한 것은 저렴한 노동력과 토지 비용을 활용하기 위한 것이지만, 이러한 생산 시설의 해외 이전은 본국의 제조업 일자리 감소와 관계가 없다. 본사가 미국에 남아 있고 연구개발 기능도 유지되고 있으므로 해외 생산 확대는 본국의 산업 구조에 영향을 미치지 않는다고 볼 수 있다.",
+ "넥스트웨이브의 공간적 분업은 각 국가가 가장 우수한 제품을 독립적으로 생산하고 자국 내에서 소비하도록 하는 구조이다. 따라서 국가 간 원자재 및 부품 공급 관계는 기업의 생산 과정에서 부수적인 역할을 하며, 다국적 기업의 국제적인 분업 체계가 확대될수록 국가 간 경제적 상호 의존성은 약화되는 경향이 있다.",
+ "넥스트웨이브는 해외 여러 지역에 생산과 판매 시설을 분산하였으므로 기업의 주요 의사결정 권한도 각 지역에 균등하게 분배되었다고 볼 수 있다. 특히 브라질 지사가 현지 소비자의 취향을 분석하고 본사에 전달한다는 점에서 브라질이 기업 전체의 생산 및 투자 방향을 최종적으로 결정하는 핵심 경영 중심지라고 판단할 수."
+ ],
+ c:1
+},
+{
+ q:"다음은 한 국가가 추진한 지속 가능한 발전 정책에 대한 설명이다. 다음 중 가장 적절한 분석을 고르시오.",
+ p:10,level:"최상",
+ a:[
+ "A국은 경제성장률을 높이기 위해 천연자원 채굴을 확대하고, 채굴 수익의 일부를 미래 세대를 위한 기금으로 적립하였다. 미래 세대가 사용할 경제적 자산을 확보했으므로 자연환경의 훼손 여부와 관계없이 지속 가능한 발전을 실현했다고 볼 수 있다.",
+ "B국은 탄소 배출량을 줄이기 위해 모든 화석 연료 발전소를 단기간에 폐쇄하고 재생에너지 발전 시설로 대체하였다. 온실가스 배출량이 감소했다면 에너지 공급의 안정성이나 전환 과정에서 발생하는 지역 주민의 실업 문제는 지속 가능한 발전과 별도로 판단해야 한다.",
+ "C국은 경제성장 과정에서 발생하는 환경오염을 줄이기 위해 오염물질 배출 기준을 강화하고, 환경 부담이 특정 저소득 지역에 집중되지 않도록 산업시설의 입지와 주민 지원 정책을 함께 조정하였다. 이는 경제활동의 지속 가능성과 환경적·사회적 형평성을 동시에 고려한 접근으로 볼 수 있다.",
+ "D국은 현재 세대의 소비 수준을 유지하기 위해 해외에서 천연자원을 수입하고 국내 환경오염을 감소시켰다. 자원 채굴 과정에서 발생하는 환경 피해가 해외에서 발생한다면 국내의 환경 부담이 감소한 것이므로 지속 가능한 발전에 부합한다고 볼 수 있다.",
+ "E국은 산림을 개발하여 얻은 수익으로 인공 숲을 조성하고 탄소 흡수량을 보충하였다. 따라서 기존 산림이 보유했던 생물 다양성, 생태계 기능 및 원주민의 생활 터전이 감소하더라도 전체적인 산림 면적이 유지된다면 지속 가능한 발전을 달성했다고 평가할 수."
+ ],
+ c:2
+}
+];
+
+let questions=[];
+let answers={};
+let startTime=0;
+let timerInterval=null;
+let remaining=25*60;
+let finished=false;
+
+function shuffle(array){
+ let a=[...array];
+ for(let i=a.length-1;i>0;i--){
+  let j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+
+function showDifficulty(){
+ document.getElementById("difficulty").style.display="block";
+}
+
+function startQuiz(){
+ questions=originalQuestions.map((q,index)=>{
+  let options=q.a.map((v,i)=>({text:v,correct:i===q.c}));
+  options=shuffle(options);
+  return {...q,options};
+ });
+
+ document.getElementById("startScreen").style.display="none";
+ document.getElementById("quizScreen").style.display="block";
+
+ const area=document.getElementById("questions");
+ area.innerHTML="";
+
+ questions.forEach((q,index)=>{
+  let div=document.createElement("div");
+  div.className="question";
+  div.id="q"+index;
+
+  let html=`
+   <div class="level">${q.level} 난이도 · ${q.p}점</div>
+   <div class="qTitle">문제 ${index+1}. [${q.p}점]<br><br>${escapeHTML(q.q)}</div>
+  `;
+
+  q.options.forEach((option,j)=>{
+   html+=`
+    <label class="choice" id="choice-${index}-${j}">
+     <input type="radio" name="q${index}" value="${j}"
+       onchange="selectAnswer(${index},${j})">
+     <span>${j+1}. ${escapeHTML(option.text)}</span>
+    </label>
+   `;
+  });
+
+  div.innerHTML=html;
+  area.appendChild(div);
+ });
+
+ startTime=Date.now();
+ remaining=1500;
+ updateTimer();
+ timerInterval=setInterval(tick,1000);
+ updateProgress();
+}
+
+function escapeHTML(str){
+ return String(str).replace(/[&<>"']/g,function(c){
+  return {
+   "&":"&amp;",
+   "<":"&lt;",
+   ">":"&gt;",
+   '"':"&quot;",
+   "'":"&#39;"
+  }[c];
+ });
+}
+
+function selectAnswer(index,choice){
+ if(finished)return;
+ answers[index]=choice;
+
+ for(let j=0;j<5;j++){
+  const el=document.getElementById(`choice-${index}-${j}`);
+  el.classList.toggle("selected",j===choice);
+ }
+ updateProgress();
+}
+
+function updateProgress(){
+ const count=Object.keys(answers).length;
+ document.getElementById("answered").textContent=`응답 ${count} / 18`;
+ document.getElementById("progressBar").style.width=(count/18*100)+"%";
+
+ const btn=document.getElementById("submitBtn");
+ const remain=document.getElementById("remaining");
+
+ if(count===18){
+  btn.disabled=false;
+  btn.textContent="시험 제출 및 채점하기";
+  remain.textContent="모든 문제에 답하셨습니다. 제출할 수 있습니다.";
+ }else{
+  btn.disabled=true;
+  btn.textContent=`모든 문제를 풀어주세요 (${count}/18)`;
+  remain.textContent=`아직 ${18-count}문제가 남았습니다.`;
+ }
+}
+
+function tick(){
+ if(finished)return;
+ remaining--;
+ updateTimer();
+ if(remaining<=0){
+  remaining=0;
+  clearInterval(timerInterval);
+  finishQuiz(true);
+ }
+}
+
+function updateTimer(){
+ const m=Math.floor(remaining/60);
+ const s=remaining%60;
+ const el=document.getElementById("timer");
+ el.textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+ el.classList.toggle("danger",remaining<=300);
+}
+
+function finishQuiz(timeout=false){
+ if(finished)return;
+
+ if(!timeout&&Object.keys(answers).length!==18)return;
+
+ finished=true;
+ clearInterval(timerInterval);
+
+ const elapsedSeconds=Math.min(
+  1500,Math.floor((Date.now()-startTime)/1000)
+ );
+
+ let correct=0;
+ let score=0;
+ let review="";
+
+ questions.forEach((q,index)=>{
+  const selected=answers[index];
+  const correctIndex=q.options.findIndex(o=>o.correct);
+  const isCorrect=selected!==undefined&&q.options[selected].correct;
+
+  if(isCorrect){
+   correct++;
+   score+=q.p;
+  }
+
+  const selectedText=selected===undefined
+   ?"미응답"
+   :`${selected+1}. ${q.options[selected].text}`;
+
+  const correctText=`${correctIndex+1}. ${q.options[correctIndex].text}`;
+
+  review+=`
+   <div class="reviewItem">
+    <strong>문제 ${index+1} (${q.p}점)</strong><br>
+    <span class="${isCorrect?"correct":"wrong"}">
+     ${isCorrect?"정답":"오답"}
+    </span>
+    ${selected===undefined?"· 미응답":""}
+    <div class="explain">내 답: ${escapeHTML(selectedText)}</div>
+    <div class="explain">정답: ${escapeHTML(correctText)}</div>
+   </div>
+  `;
+ });
+
+ const minutes=Math.floor(elapsedSeconds/60);
+ const seconds=elapsedSeconds%60;
+
+ document.getElementById("quizScreen").style.display="none";
+ document.getElementById("resultScreen").style.display="block";
+
+ document.getElementById("scoreDisplay").textContent=score+"점";
+ document.getElementById("correctCount").textContent=correct+" / 18";
+ document.getElementById("wrongCount").textContent=(18-correct)+"개";
+ document.getElementById("elapsed").textContent=
+  `${minutes}분 ${seconds}초`;
+ document.getElementById("answerReview").innerHTML=review;
+
+ let grade="";
+ if(score>=90)grade="우수한 성적입니다!";
+ else if(score>=80)grade="좋은 성적입니다!";
+ else if(score>=70)grade="양호한 성적입니다.";
+ else if(score>=60)grade="조금 더 공부해 보세요.";
+ else grade="복습이 필요합니다.";
+
+ document.getElementById("grade").textContent=grade;
+ document.getElementById("timeoutText").textContent=
+  timeout?"제한 시간 25분이 종료되어 자동 제출되었습니다.":"시험을 정상적으로 제출했습니다.";
+
+ window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
